@@ -12,6 +12,7 @@ import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.data.Subscription;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
 import com.patloew.rxfit.RxFit;
@@ -45,10 +46,12 @@ public class MainViewModel extends AndroidViewModel {
     private long endTime;
     private long startTime;
     private MutableLiveData<List<PhysicalActivity>> activitiesLiveData;
+    private MutableLiveData<Boolean> isLoading;
 
     public MainViewModel(@NonNull Application application) {
         super(application);
         activitiesLiveData = new MutableLiveData<>();
+        isLoading = new MutableLiveData<>();
     }
 
     private RxFit rxFit = new RxFit(
@@ -56,6 +59,7 @@ public class MainViewModel extends AndroidViewModel {
             new Api[]{Fitness.HISTORY_API},
             new Scope[]{new Scope(Scopes.FITNESS_ACTIVITY_READ)}
     );
+
 
     private DataReadRequest getDataReadRequest() {
         Calendar cal = Calendar.getInstance();
@@ -70,6 +74,8 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     void loadListOfActivities() {
+
+        isLoading.postValue(true);
 
         final List<PhysicalActivity> activities = new ArrayList<>();
 
@@ -96,6 +102,7 @@ public class MainViewModel extends AndroidViewModel {
             public void onComplete() {
                 Log.d("MainViewModel", "onComplete: Completed emitting activities!");
                 activitiesLiveData.postValue(activities);
+                isLoading.postValue(false);
             }
         };
 
@@ -139,6 +146,10 @@ public class MainViewModel extends AndroidViewModel {
 
     LiveData<List<PhysicalActivity>> getListOfActivities() {
         return activitiesLiveData;
+    }
+
+    LiveData<Boolean> getLoadingStatus() {
+        return isLoading;
     }
 
     private String capitalizeFirstLetter(String input) {

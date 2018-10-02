@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import static android.widget.LinearLayout.HORIZONTAL;
 public class MainActivity extends AppCompatActivity {
 
     RecyclerView activitiesRecyclerView;
+    ProgressBar progressBar;
     PhysicalActivityAdapter adapter;
 
     @Override
@@ -28,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         activitiesRecyclerView = findViewById(R.id.activities_recycler_view);
+        progressBar = findViewById(R.id.progressBar);
 
         MainViewModel mainViewModel = ViewModelProviders
                 .of(this)
@@ -46,6 +50,17 @@ public class MainActivity extends AppCompatActivity {
         activitiesRecyclerView.addItemDecoration(itemDecor);
 
         mainViewModel.loadListOfActivities();
+        mainViewModel.getLoadingStatus()
+                .observe(this, new Observer<Boolean>() {
+                    @Override
+                    public void onChanged(Boolean aBoolean) {
+                        if(aBoolean) {
+                            progressBar.setVisibility(View.VISIBLE);
+                        } else {
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    }
+                });
         mainViewModel.getListOfActivities()
                 .observe(this, new Observer<List<PhysicalActivity>>() {
                     @Override
