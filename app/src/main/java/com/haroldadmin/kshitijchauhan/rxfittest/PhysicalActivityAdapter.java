@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -50,6 +51,14 @@ public class PhysicalActivityAdapter extends RecyclerView.Adapter<PhysicalActivi
 
         this.listOfActivities.clear();
         this.listOfActivities.addAll(list);
+    }
+
+    public void clearAdapter() {
+        DiffUtilCallback diffUtilCallback = new DiffUtilCallback(this.listOfActivities, new ArrayList<PhysicalActivity>());
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffUtilCallback);
+        diffResult.dispatchUpdatesTo(this);
+
+        this.listOfActivities.clear();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

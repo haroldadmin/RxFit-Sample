@@ -2,7 +2,6 @@ package com.haroldadmin.kshitijchauhan.rxfittest;
 
 import android.app.Application;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Api;
@@ -12,33 +11,24 @@ import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
-import com.google.android.gms.fitness.data.Subscription;
 import com.google.android.gms.fitness.request.DataReadRequest;
-import com.google.android.gms.fitness.result.DataReadResult;
 import com.patloew.rxfit.RxFit;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.OnLifecycleEvent;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
-import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainViewModel extends AndroidViewModel {
@@ -75,8 +65,6 @@ public class MainViewModel extends AndroidViewModel {
 
     void loadListOfActivities() {
 
-        isLoading.postValue(true);
-
         final List<PhysicalActivity> activities = new ArrayList<>();
 
         DataReadRequest dataReadRequest = getDataReadRequest();
@@ -84,6 +72,7 @@ public class MainViewModel extends AndroidViewModel {
         Observer<PhysicalActivity> physicalActivityObserver = new Observer<PhysicalActivity>() {
             @Override
             public void onSubscribe(Disposable d) {
+                isLoading.postValue(true);
                 Log.d("MainViewModel", "onSubscribe: Starting to emit items!");
             }
 
@@ -138,8 +127,7 @@ public class MainViewModel extends AndroidViewModel {
                         return activity;
                     }
                 })
-                .subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread());
+                .subscribeOn(Schedulers.io());
 
         observable.subscribe(physicalActivityObserver);
     }

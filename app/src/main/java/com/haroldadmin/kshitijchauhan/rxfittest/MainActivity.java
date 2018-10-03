@@ -1,29 +1,27 @@
 package com.haroldadmin.kshitijchauhan.rxfittest;
 
+import android.os.Bundle;
+
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static android.widget.LinearLayout.HORIZONTAL;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
 
     RecyclerView activitiesRecyclerView;
-    ProgressBar progressBar;
+    ConstraintLayout rootView;
+    SwipeRefreshLayout swipeRefreshLayout;
     PhysicalActivityAdapter adapter;
 
     @Override
@@ -31,9 +29,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         activitiesRecyclerView = findViewById(R.id.activities_recycler_view);
-        progressBar = findViewById(R.id.progressBar);
+        rootView = findViewById(R.id.root_view);
+        swipeRefreshLayout = findViewById(R.id.swipe_container);
 
-        MainViewModel mainViewModel = ViewModelProviders
+        final MainViewModel mainViewModel = ViewModelProviders
                 .of(this)
                 .get(MainViewModel.class);
 
@@ -53,20 +52,30 @@ public class MainActivity extends AppCompatActivity {
         mainViewModel.getLoadingStatus()
                 .observe(this, new Observer<Boolean>() {
                     @Override
-                    public void onChanged(Boolean aBoolean) {
-                        if(aBoolean) {
-                            progressBar.setVisibility(View.VISIBLE);
-                        } else {
-                            progressBar.setVisibility(View.GONE);
-                        }
+                    public void onChanged(Boolean isLoading) {
+                        swipeRefreshLayout.setRefreshing(isLoading);
                     }
                 });
         mainViewModel.getListOfActivities()
                 .observe(this, new Observer<List<PhysicalActivity>>() {
                     @Override
                     public void onChanged(List<PhysicalActivity> physicalActivities) {
-                        adapter.updateList(physicalActivities);
+                        if (physicalActivities.isEmpty()) {
+                            Snackbar.make(rootView, "Google Fit returned no activities", Snackbar.LENGTH_SHORT).show();
+                        } else {
+                            adapter.updateList(physicalActivities);
+                            Snackbar.make(rootView, "Google Fit returned " + physicalActivities.size() + " activities", Snackbar.LENGTH_SHORT).show();
+                        }
                     }
                 });
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                adapter.clearAdapter();
+                mainViewModel.loadListOfActivities();
+                Snackbar.make(rootView, "Refreshing", Snackbar.LENGTH_SHORT).show();
+            }
+        });
     }
 }
