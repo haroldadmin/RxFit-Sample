@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,11 +22,11 @@ import androidx.recyclerview.widget.RecyclerView;
 public class PhysicalActivityAdapter extends RecyclerView.Adapter<PhysicalActivityAdapter.ViewHolder> {
 
     private List<PhysicalActivity> listOfActivities;
-    private Context context;
+    private RequestManager glide;
 
-    public PhysicalActivityAdapter(List<PhysicalActivity> list, Context context) {
+    public PhysicalActivityAdapter(List<PhysicalActivity> list, RequestManager glide) {
         this.listOfActivities = list;
-        this.context = context;
+        this.glide = glide;
     }
 
     @NonNull
@@ -79,32 +80,10 @@ public class PhysicalActivityAdapter extends RecyclerView.Adapter<PhysicalActivi
         }
 
         void bindValues(PhysicalActivity activity) {
-
-            String timeFormat = "HH:mm a";
-            SimpleDateFormat formatter = new SimpleDateFormat(timeFormat);
-
-            Date startDate = new Date(activity.getStartTime());
-            Date endDate = new Date(activity.getEndTime());
-            String startTime = formatter.format(startDate);
-            String endTime = formatter.format(endDate);
-
             this.activityTextView.setText(activity.getName());
-            this.startTimeTextView.setText(startTime);
-            this.endTimeTextView.setText(endTime);
-
-            switch (activity.getName().toLowerCase()) {
-                case "running":
-                    Glide.with(context).load(R.drawable.ic_baseline_directions_run_24px).into(activityImageView);
-                    break;
-                case "walking":
-                    Glide.with(context).load(R.drawable.ic_baseline_directions_walk_24px).into(activityImageView);
-                    break;
-                case "in_vehicle":
-                    Glide.with(context).load(R.drawable.ic_baseline_directions_car_24px).into(activityImageView);
-                    break;
-                default:
-                    Glide.with(context).load(R.drawable.ic_baseline_fitness_center_24px).into(activityImageView);
-            }
+            this.startTimeTextView.setText(activity.getStartTime());
+            this.endTimeTextView.setText(activity.getEndTime());
+            glide.load(activity.getIcon()).into(activityImageView);
         }
     }
 

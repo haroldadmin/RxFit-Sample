@@ -2,6 +2,7 @@ package com.haroldadmin.kshitijchauhan.rxfittest;
 
 import android.os.Bundle;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
                 .of(this)
                 .get(MainViewModel.class);
 
-        adapter = new PhysicalActivityAdapter(new ArrayList<PhysicalActivity>(), this);
+        adapter = new PhysicalActivityAdapter(new ArrayList<PhysicalActivity>(), Glide.with(this));
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setReverseLayout(true);

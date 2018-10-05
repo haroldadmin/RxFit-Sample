@@ -1,6 +1,7 @@
 package com.haroldadmin.kshitijchauhan.rxfittest;
 
 import android.app.Application;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.google.android.gms.common.Scopes;
@@ -14,12 +15,15 @@ import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.patloew.rxfit.RxFit;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -73,12 +77,10 @@ public class MainViewModel extends AndroidViewModel {
             @Override
             public void onSubscribe(Disposable d) {
                 isLoading.postValue(true);
-                Log.d("MainViewModel", "onSubscribe: Starting to emit items!");
             }
 
             @Override
             public void onNext(PhysicalActivity activity) {
-                Log.d("MainViewModel", "onNext for " + activity.getName());
                 activities.add(activity);
             }
 
@@ -89,7 +91,6 @@ public class MainViewModel extends AndroidViewModel {
 
             @Override
             public void onComplete() {
-                Log.d("MainViewModel", "onComplete: Completed emitting activities!");
                 activitiesLiveData.postValue(activities);
                 isLoading.postValue(false);
             }
@@ -117,17 +118,32 @@ public class MainViewModel extends AndroidViewModel {
                 .map(new Function<DataPoint, PhysicalActivity>() {
                     @Override
                     public PhysicalActivity apply(DataPoint dataPoint) {
-                        return new PhysicalActivity(dataPoint.getStartTime(TimeUnit.MILLISECONDS), dataPoint.getEndTime(TimeUnit.MILLISECONDS), dataPoint.getValue(Field.FIELD_ACTIVITY).asActivity());
+                        String timeFormat = "HH:mm a";
+                        SimpleDateFormat formatter = new SimpleDateFormat(timeFormat);
+                        Date startDate = new Date(dataPoint.getStartTime(TimeUnit.MILLISECONDS));
+                        Date endDate = new Date(dataPoint.getEndTime(TimeUnit.MILLISECONDS));
+
+                        String startTime = formatter.format(startDate);
+                        String endTime = formatter.format(endDate);
+                        String activityName = capitalizeFirstLetter(dataPoint.getValue(Field.FIELD_ACTIVITY).asActivity());
+                        Drawable icon;
+                        switch (activityName.toLowerCase()) {
+                            case "running":
+                                icon = ContextCompat.getDrawable(getApplication(), R.drawable.ic_baseline_directions_run_24px);
+                                break;
+                            case "walking":
+                                icon = ContextCompat.getDrawable(getApplication(), R.drawable.ic_baseline_directions_walk_24px);
+                                break;
+                            case "in_vehicle":
+                                icon = ContextCompat.getDrawable(getApplication(), R.drawable.ic_baseline_directions_car_24px);
+                                break;
+                            default: icon = ContextCompat.getDrawable(getApplication(), R.drawable.ic_baseline_fitness_center_24px);
+                        }
+                        return new PhysicalActivity(startTime, endTime, activityName, icon);
                     }
                 })
-                .map(new Function<PhysicalActivity, PhysicalActivity>() {
-                    @Override
-                    public PhysicalActivity apply(PhysicalActivity activity) {
-                        activity.setName(capitalizeFirstLetter(activity.getName()));
-                        return activity;
-                    }
-                })
-                .subscribeOn(Schedulers.io());
+                .subscribeOn(Schedulers.computation())
+                .observeOn(Schedulers.computation());
 
         observable.subscribe(physicalActivityObserver);
     }
